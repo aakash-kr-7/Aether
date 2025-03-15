@@ -1,6 +1,11 @@
 buildscript {
+    repositories {
+        google()  // ✅ Add this to resolve dependencies
+        mavenCentral()
+    }
+
     dependencies {
-        classpath 'com.google.gms:google-services:4.3.15'  // Use the latest version from pub.dev
+        classpath("com.google.gms:google-services:4.3.15")
     }
 }
 
