@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/journal/journal_home.dart';
 import 'screens/forum/forum_home.dart';
+import 'screens/chatbot/chatbot_screen.dart';
 
 void main() {
   runApp(AetherApp());
@@ -35,6 +36,9 @@ class HomeSelectionScreen extends StatelessWidget {
             ElevatedButton(onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => ForumHome()));
             }, child: Text("Go to Forum")),
+            ElevatedButton(onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ChatbotScreen()));
+            }, child: Text("Go to Lily (Chatbot)")),
           ],
         ),
       ),
