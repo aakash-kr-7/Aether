@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'aether-b72f5.firebasestorage.app',
     measurementId: 'G-NB9VWJ05Y3',
   );
+
 }
