@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
+import '../home/home_screen.dart';
 import 'register_screen.dart';
-import '../../widgets/custom_button.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
-  LoginScreen({super.key});
+  void _login() async {
+    var user = await _authService.login(emailController.text, passwordController.text);
+    if (user != null) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Failed!")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +32,11 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Welcome to Aether",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue[800])),
-              SizedBox(height: 20),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: "Email", border: OutlineInputBorder()),
-              ),
+              TextField(controller: emailController, decoration: InputDecoration(labelText: "Email")),
               SizedBox(height: 10),
-              TextField(
-                controller: passwordController,
-                decoration: InputDecoration(labelText: "Password", border: OutlineInputBorder()),
-                obscureText: true,
-              ),
+              TextField(controller: passwordController, decoration: InputDecoration(labelText: "Password"), obscureText: true),
               SizedBox(height: 20),
-              CustomButton(text: "Login", onPressed: () {}),
+              ElevatedButton(onPressed: _login, child: Text("Login")),
               TextButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterScreen()));

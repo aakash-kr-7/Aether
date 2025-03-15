@@ -7,22 +7,22 @@ plugins {
 
 android {
     namespace = "com.example.aether"
-    compileSdk = 34  // ✅ Explicitly set compileSdkVersion
+    compileSdk = 35 // ✅ Explicitly set compileSdkVersion
     ndkVersion = "27.0.12077973"  // ✅ Fix NDK version mismatch
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
         applicationId = "com.example.aether"
         minSdkVersion(23)  // ✅ Ensure this is 23
-        targetSdkVersion(34)  // ✅ Explicitly set target SDK
+        targetSdkVersion(35) // ✅ Explicitly set target SDK
         versionCode = 1
         versionName = "1.0"
     }

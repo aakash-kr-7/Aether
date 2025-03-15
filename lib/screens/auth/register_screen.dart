@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
-import '../../widgets/custom_button.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
-  RegisterScreen({super.key});
+  void _signUp() async {
+    var user = await _authService.signUp(emailController.text, passwordController.text);
+    if (user != null) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Signup Failed!")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +31,11 @@ class RegisterScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Create an Account",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue[800])),
-              SizedBox(height: 20),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: "Email", border: OutlineInputBorder()),
-              ),
+              TextField(controller: emailController, decoration: InputDecoration(labelText: "Email")),
               SizedBox(height: 10),
-              TextField(
-                controller: passwordController,
-                decoration: InputDecoration(labelText: "Password", border: OutlineInputBorder()),
-                obscureText: true,
-              ),
+              TextField(controller: passwordController, decoration: InputDecoration(labelText: "Password"), obscureText: true),
               SizedBox(height: 20),
-              CustomButton(text: "Register", onPressed: () {}),
+              ElevatedButton(onPressed: _signUp, child: Text("Register")),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
