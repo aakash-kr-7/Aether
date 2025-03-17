@@ -1,0 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class ForumPost {
+  final String postId;
+  final String userId;
+  final String username;
+  final String title;
+  final String content;
+  final DateTime timestamp;
+
+  ForumPost({
+    required this.postId,
+    required this.userId,
+    required this.username,
+    required this.title,
+    required this.content,
+    required this.timestamp,
+  });
+
+  factory ForumPost.fromMap(Map<String, dynamic> map) {
+    return ForumPost(
+      postId: map['postId'],
+      userId: map['userId'],
+      username: map['username'],
+      title: map['title'],
+      content: map['content'],
+      timestamp: (map['timestamp'] as Timestamp).toDate(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'postId': postId,
+      'userId': userId,
+      'username': username,
+      'title': title,
+      'content': content,
+      'timestamp': timestamp,
+    };
+  }
+}
