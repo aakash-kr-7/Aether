@@ -7,6 +7,8 @@ class ForumPost {
   final String title;
   final String content;
   final DateTime timestamp;
+  final List<String> likes; // Track likes by userId
+  final int commentCount;
 
   ForumPost({
     required this.postId,
@@ -15,6 +17,8 @@ class ForumPost {
     required this.title,
     required this.content,
     required this.timestamp,
+    this.likes = const [],
+    this.commentCount = 0,
   });
 
   factory ForumPost.fromMap(Map<String, dynamic> map) {
@@ -25,6 +29,8 @@ class ForumPost {
       title: map['title'],
       content: map['content'],
       timestamp: (map['timestamp'] as Timestamp).toDate(),
+      likes: List<String>.from(map['likes'] ?? []),
+      commentCount: map['commentCount'] ?? 0,
     );
   }
 
@@ -36,6 +42,8 @@ class ForumPost {
       'title': title,
       'content': content,
       'timestamp': timestamp,
+      'likes': likes,
+      'commentCount': commentCount,
     };
   }
 }

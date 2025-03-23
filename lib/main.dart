@@ -43,9 +43,9 @@ class AuthWrapper extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasData) {
-          return HomeScreen(); // Redirect if user is logged in
+          return HomeScreen();
         }
-        return LoginScreen(); // Show login if not authenticated
+        return LoginScreen();
       },
     );
   }

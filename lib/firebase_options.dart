@@ -46,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '384582288929',
     projectId: 'aether-b72f5',
     authDomain: 'aether-b72f5.firebaseapp.com',
+    databaseURL: 'https://aether-b72f5-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'aether-b72f5.firebasestorage.app',
     measurementId: 'G-2XRE1S6GC6',
   );
@@ -55,6 +56,7 @@ class DefaultFirebaseOptions {
     appId: '1:384582288929:android:6e2156e970cae5be0b8560',
     messagingSenderId: '384582288929',
     projectId: 'aether-b72f5',
+    databaseURL: 'https://aether-b72f5-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'aether-b72f5.firebasestorage.app',
   );
 
@@ -63,6 +65,7 @@ class DefaultFirebaseOptions {
     appId: '1:384582288929:ios:410291f6821aec090b8560',
     messagingSenderId: '384582288929',
     projectId: 'aether-b72f5',
+    databaseURL: 'https://aether-b72f5-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'aether-b72f5.firebasestorage.app',
     iosBundleId: 'com.example.aether',
   );
@@ -72,6 +75,7 @@ class DefaultFirebaseOptions {
     appId: '1:384582288929:ios:410291f6821aec090b8560',
     messagingSenderId: '384582288929',
     projectId: 'aether-b72f5',
+    databaseURL: 'https://aether-b72f5-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'aether-b72f5.firebasestorage.app',
     iosBundleId: 'com.example.aether',
   );
@@ -82,6 +86,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '384582288929',
     projectId: 'aether-b72f5',
     authDomain: 'aether-b72f5.firebaseapp.com',
+    databaseURL: 'https://aether-b72f5-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'aether-b72f5.firebasestorage.app',
     measurementId: 'G-NB9VWJ05Y3',
   );

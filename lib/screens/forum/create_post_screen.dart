@@ -10,13 +10,16 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
   final ForumService _forumService = ForumService();
   final _uuid = Uuid();
 
   void _submitPost() async {
-    String text = _controller.text;
-    if (text.isNotEmpty) {
+    String title = _titleController.text.trim();
+    String content = _contentController.text.trim();
+
+    if (title.isNotEmpty && content.isNotEmpty) {
       String userId = FirebaseAuth.instance.currentUser?.uid ?? "default_user";
       String username = FirebaseAuth.instance.currentUser?.email ?? "Anonymous";
       String postId = _uuid.v4();
@@ -25,9 +28,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         postId: postId,
         userId: userId,
         username: username,
-        title: text,
-        content: "This is a placeholder content for now.",
+        title: title,
+        content: content,
         timestamp: DateTime.now(),
+        likes: [],
+        commentCount: 0,
       );
 
       await _forumService.createPost(newPost);
@@ -48,10 +53,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: TextField(
-          controller: _controller,
-          decoration: InputDecoration(hintText: "Write your post title..."),
-          maxLines: 1,
+        child: Column(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(hintText: "Enter post title..."),
+              maxLines: 1,
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _contentController,
+              decoration: InputDecoration(hintText: "Enter post content..."),
+              maxLines: 5,
+            ),
+          ],
         ),
       ),
     );
