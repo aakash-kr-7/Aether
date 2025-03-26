@@ -17,11 +17,13 @@ class ChatMessage {
 
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
     return ChatMessage(
-      messageId: map['messageId'],
-      senderId: map['senderId'],
-      senderName: map['senderName'],
-      text: map['text'],
-      timestamp: (map['timestamp'] as Timestamp).toDate(),
+      messageId: map['messageId'] ?? '',
+      senderId: map['senderId'] ?? '',
+      senderName: map['senderName'] ?? 'Unknown',
+      text: map['text'] ?? '',
+      timestamp: map['timestamp'] is Timestamp
+          ? (map['timestamp'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 
@@ -31,7 +33,7 @@ class ChatMessage {
       'senderId': senderId,
       'senderName': senderName,
       'text': text,
-      'timestamp': timestamp,
+      'timestamp': Timestamp.fromDate(timestamp),
     };
   }
 }

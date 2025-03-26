@@ -23,19 +23,25 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
 
     _controller.clear();
-    String botResponse = await _chatbotService.getResponse(userMessage);
+    try {
+      String botResponse = await _chatbotService.getResponse(userMessage);
 
-    print("🔹 Lily's Response: $botResponse"); // ✅ Debugging Line
+      if (botResponse.trim().isEmpty) {
+        botResponse = "Hmm... I'm not sure how to respond to that.";
+      }
 
-    if (botResponse.trim().isEmpty) {
-      botResponse = "Hmm... I'm not sure how to respond to that.";
+      setState(() {
+        messages.removeLast();
+        messages.add({"bot": botResponse});
+      });
+    } catch (e) {
+      setState(() {
+        messages.removeLast();
+        messages.add({"bot": "Oops! Something went wrong."});
+      });
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    setState(() {
-      messages.removeLast(); // Remove "Lily is thinking..."
-      messages.add({"bot": botResponse});
-      _isLoading = false;
-    });
   }
 
   @override
