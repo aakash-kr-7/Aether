@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatbotService {
-  final String _apiKey = "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";
-  final String _apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+  final String _apiKey = "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"; // Replace with your Groq API key
+  final String _apiUrl = "https://api.groq.com/openai/v1/chat/completions";
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Uuid _uuid = Uuid();
 
@@ -22,36 +22,35 @@ class ChatbotService {
           "Content-Type": "application/json",
         },
         body: jsonEncode({
-          "model": "openai/gpt-3.5-turbo",
+          "model": "llama3-8b-8192",
           "messages": [
             {
               "role": "system",
-              "content": "You are Lily, a warm and cheerful support chatbot. Always provide kind, supportive, and uplifting responses."
+              "content": "You are Lily, a warm, clever, and empathetic mental health companion on the Aether app. Your goal is to make users feel safe, heard, and supported. Be thoughtful, clear, and professional. Avoid flirtatious or inappropriate language. You are a kind, understanding friend who offers support through conversations, reflecting emotional depth while maintaining healthy boundaries."
             },
             {
               "role": "user",
               "content": userMessage,
             }
           ],
-          "max_tokens": 150,
+          "max_tokens": 250,
+          "temperature": 0.8,
+          "top_p": 0.9,
         }),
       );
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        String botResponse = jsonResponse["choices"]?[0]["message"]["content"]?.trim() ?? "Hmm... I'm not sure how to respond to that.";
+        String botResponse = jsonResponse["choices"]?[0]["message"]["content"]?.trim() ?? "I'm here to listen. How are you feeling?";
 
-        // Ensure chatId exists
         chatId ??= generateChatId(userId);
         DocumentReference chatRef = _firestore.collection("chats").doc(chatId);
 
-        // Ensure chat document exists
         await chatRef.set({
           "userId": userId,
           "messages": FieldValue.arrayUnion([]),
         }, SetOptions(merge: true));
 
-        // Use DateTime.now() for timestamps
         Map<String, dynamic> userMessageData = {
           "messageId": _uuid.v4(),
           "senderId": userId,
@@ -68,19 +67,18 @@ class ChatbotService {
           "timestamp": DateTime.now(),
         };
 
-        // Store messages in Firestore under the correct chat document
         await chatRef.update({
           "messages": FieldValue.arrayUnion([userMessageData, botMessageData]),
         });
 
         return botResponse;
       } else {
-        print("⚠️ OpenRouter API Error: ${response.body}");
-        return "Sorry, I couldn't process that right now. Please try again!";
+        print("⚠️ Groq API Error: ${response.body}");
+        return "I'm here for you, but I'm having trouble responding right now. Please try again soon.";
       }
     } catch (e) {
       print("❌ Error: $e");
-      return "Error: Unable to connect to AI.";
+      return "Error: Unable to connect to Lily.";
     }
   }
 
