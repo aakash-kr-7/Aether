@@ -5,18 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '/firebase_options.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
-import 'screens/home/onboardingscreen.dart'; // Import Onboarding
-import 'screens/journal/journal_home.dart';
-import 'screens/forum/forum_home.dart';
-import 'screens/chatbot/chatbot_screen.dart';
+import 'screens/home/onboardingscreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Clear Firestore cache
-  await FirebaseFirestore.instance.clearPersistence();
-
+  await FirebaseFirestore.instance.clearPersistence(); // Clear cache
   runApp(MyApp());
 }
 
@@ -32,9 +26,6 @@ class MyApp extends StatelessWidget {
         '/': (context) => AuthWrapper(),
         '/home': (context) => HomeScreen(),
         '/onboarding': (context) => OnboardingScreen(),
-        '/journal': (context) => JournalHome(),
-        '/forum': (context) => ForumHome(),
-        '/chatbot': (context) => ChatbotScreen(),
         '/login': (context) => LoginScreen(),
       },
     );
@@ -44,19 +35,16 @@ class MyApp extends StatelessWidget {
 class AuthWrapper extends StatelessWidget {
   Future<bool> _checkOnboardingCompletion(String userId) async {
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get(const GetOptions(source: Source.server)); // Force fresh data
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(userId).get();
 
-      if (!userDoc.exists) return false; // If document doesn't exist, user is new
+      if (!userDoc.exists) return false;
 
-      Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
-
-      return userData?['onboardingComplete'] == true;
+      Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
+      return data?['onboardingComplete'] ?? false;
     } catch (e) {
       print("Error checking onboarding status: $e");
-      return false; // Default to onboarding if error occurs
+      return false;
     }
   }
 
@@ -66,20 +54,21 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.hasData) {
           String userId = snapshot.data!.uid;
+
           return FutureBuilder<bool>(
             future: _checkOnboardingCompletion(userId),
             builder: (context, onboardingSnapshot) {
               if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return Scaffold(body: Center(child: CircularProgressIndicator()));
               }
               if (onboardingSnapshot.data == false) {
                 return OnboardingScreen();
               }
-              return HomeScreen();
+              return HomeScreen(); // Fallback return statement
             },
           );
         }
@@ -88,4 +77,3 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
-
