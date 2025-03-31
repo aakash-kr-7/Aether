@@ -16,9 +16,9 @@ class AuthService {
       User? user = userCredential.user;
       if (user != null) {
         await _firestore.collection('users').doc(user.uid).set({
-          'email': email, // ✅ Store email for easy reference
+          'email': email,
           'onboardingComplete': false,
-          'createdAt': FieldValue.serverTimestamp(), // ✅ Store sign-up timestamp
+          'createdAt': FieldValue.serverTimestamp(),
         });
       }
       return user;
@@ -39,14 +39,15 @@ class AuthService {
       User? user = userCredential.user;
       if (user != null) {
         DocumentReference userRef = _firestore.collection('users').doc(user.uid);
-
         DocumentSnapshot userDoc = await userRef.get();
-        if (!userDoc.exists) {
-          await userRef.set({
-            'onboardingComplete': false,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        } 
+
+        // ✅ Ensure `onboardingComplete` exists without overwriting data
+        await userRef.set({
+          'onboardingComplete': userDoc.exists && userDoc.data() != null
+              ? (userDoc.data() as Map<String, dynamic>)['onboardingComplete'] ?? false
+              : false,
+          'createdAt': userDoc.exists ? userDoc['createdAt'] : FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       }
       return user;
     } catch (e) {

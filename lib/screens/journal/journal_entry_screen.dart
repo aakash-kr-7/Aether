@@ -38,6 +38,14 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     {'mood': 'Neutral', 'emoji': '😐'},
   ];
 
+  final List<Color> stickyNoteColors = [
+    Colors.yellow.shade200,
+    Colors.green.shade200,
+    Colors.blue.shade200,
+    Colors.pink.shade200,
+    Colors.orange.shade200,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -211,10 +219,52 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                           controller: _noteController,
                           decoration: InputDecoration(
                             hintText: "Add a note",
-                            hintStyle: TextStyle(color: textColor),
+                            hintStyle: TextStyle(color: Colors.black),
                             suffixIcon: IconButton(icon: Icon(Icons.add), onPressed: _addNote),
                           ),
-                          style: TextStyle(color: textColor),
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        SizedBox(height: 8.0),
+                        Wrap(
+                          spacing: 8.0,
+                          runSpacing: 8.0,
+                          children: _notes.asMap().entries.map((entry) {
+                            int index = entry.key;
+                            String note = entry.value;
+                            return Container(
+                              width: 120,
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: stickyNoteColors[index % stickyNoteColors.length],
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black,
+                                    blurRadius: 4,
+                                    offset: Offset(2, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    note,
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                                  ),
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() => _notes.remove(note));
+                                      },
+                                      child: Icon(Icons.close, size: 16, color: Colors.black54),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ],
                     ),

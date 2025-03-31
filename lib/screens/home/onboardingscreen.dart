@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aether/models/onboarding_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OnboardingScreen extends StatefulWidget {
   @override
@@ -186,6 +187,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       });
     } else {
       await onboardingData.saveToFirestore();
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({'onboardingComplete': true});
       Navigator.pushReplacementNamed(context, '/home');
     }
   }
@@ -197,6 +199,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       });
     } else {
       Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  Future<void> checkOnboardingStatus() async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+    if (userDoc.exists && userDoc['onboardingComplete'] == true) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (user != null) {
+      checkOnboardingStatus();
     }
   }
 
@@ -272,20 +289,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: isSelected ? Colors.blue : Colors.grey[200],
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
-                      option,
-                      style: TextStyle(fontSize: 18, color: isSelected ? Colors.white : Colors.black),
-                    ),
+                    child: Text(option, style: TextStyle(fontSize: 18, color: isSelected ? Colors.white : Colors.black)),
                   ),
                 );
               }).toList(),
             SizedBox(height: 30),
-            Center(
-              child: ElevatedButton(
-                onPressed: nextQuestion,
-                child: Text(currentQuestionIndex == questions.length - 1 ? "Finish" : "Next"),
-              ),
-            ),
+            Center(child: ElevatedButton(onPressed: nextQuestion, child: Text(currentQuestionIndex == questions.length - 1 ? "Finish" : "Next"))),
           ],
         ),
       ),
