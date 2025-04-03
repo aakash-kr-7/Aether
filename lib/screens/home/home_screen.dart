@@ -21,123 +21,118 @@ class _HomeScreenState extends State<HomeScreen> {
         context, MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: const Color.fromARGB(255, 4, 18, 39),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.menu, color: Colors.white),
-          onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _logout(context),
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        backgroundColor: Colors.blue.shade800,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue.shade700),
-              child: Text(
-                "Menu",
-                style: GoogleFonts.pacifico(fontSize: 28, color: Colors.white),
-              ),
-            ),
-            _buildDrawerItem(Icons.person, "Profile"),
-            _buildDrawerItem(Icons.music_note, "Music Recommendations"),
-            _buildDrawerItem(Icons.article, "Articles"),
-            _buildDrawerItem(Icons.shield_moon, "Sleep"),
-            _buildDrawerItem(Icons.mediation, "Meditation"),
-          ],
+  Widget _buildSectionTitle(String title) {
+  return Align(
+    alignment: Alignment.centerLeft,
+    child: Padding(
+      padding: const EdgeInsets.only(left: 8.0, bottom: 5),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
-      body: Stack(
-        children: [
-          _buildCloudsBackground(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "Aether",
-                  style: GoogleFonts.pacifico(
-                    fontSize: 48,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 20),
-                _buildCheckInCard(),
-                SizedBox(height: 20),
-                _buildButtonRow(context),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildCloudsBackground() {
-    return Stack(
-      children: [
-        Positioned(top: 50, left: 30, child: _buildCloud()),
-        Positioned(top: 150, right: 30, child: _buildCloud()),
-        Positioned(bottom: 100, left: 80, child: _buildCloud()),
-        Positioned(bottom: 200, right: 50, child: _buildCloud()),
-        Positioned(bottom: 50, left: 20, child: _buildCloud()),
-        Positioned(bottom: 30, right: 40, child: _buildCloud()),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    key: _scaffoldKey,
+    backgroundColor: const Color.fromARGB(255, 4, 18, 39),
+    appBar: AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: Icon(Icons.menu, color: Colors.white),
+        onPressed: () {
+          _scaffoldKey.currentState?.openDrawer();
+        },
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.logout, color: Colors.white),
+          onPressed: () => _logout(context),
+        ),
       ],
-    );
-  }
-
-  Widget _buildCloud() {
-    return Icon(Icons.cloud, color: Colors.white.withOpacity(0.3), size: 60);
-  }
-
-  Widget _buildCheckInCard() {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade700,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    ),
+    drawer: Drawer(
+      backgroundColor: Colors.blue.shade800,
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
-          Text("How are you feeling today?",
-              style: TextStyle(fontSize: 18, color: Colors.white)),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _emojiButton("😃"),
-              _emojiButton("🙂"),
-              _emojiButton("😐"),
-              _emojiButton("☹"),
-            ],
+          DrawerHeader(
+            decoration: BoxDecoration(color: Colors.blue.shade700),
+            child: Text(
+              "Menu",
+              style: GoogleFonts.pacifico(fontSize: 28, color: Colors.white),
+            ),
           ),
+          _buildDrawerItem(Icons.person, "Profile"),
+          _buildDrawerItem(Icons.music_note, "Music Recommendations"),
+          _buildDrawerItem(Icons.article, "Insights"),
+          _buildDrawerItem(Icons.run_circle, "Activity Tracker"),
         ],
       ),
+    ),
+    body: SingleChildScrollView(  // Wrap the body content with SingleChildScrollView
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _buildTitle(),
+          SizedBox(height: 10),
+          _buildEmotionLoggingTile(),
+          SizedBox(height: 15),
+          _buildButtonRow(context),
+          SizedBox(height: 15),
+          _buildSectionTitle("Insights"),
+          _buildInsightsSection(),
+          SizedBox(height: 15),
+          _buildSectionTitle("Music Recommendations"),
+          _buildMusicRecommendations(),
+          SizedBox(height: 15),
+          _buildSectionTitle("Activity Tracker"),
+          _buildActivityTracker(),
+        ],
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildTitle() {
+    return Text(
+      "Aether",
+      style: GoogleFonts.pacifico(
+        fontSize: 48,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
-  Widget _emojiButton(String emoji) {
+  Widget _buildEmotionLoggingTile() {
     return GestureDetector(
-      onTap: () {},
-      child: Text(emoji, style: TextStyle(fontSize: 30)),
+      onTap: () {
+        // TODO: Navigate to Emotion Logging Screen
+      },
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade700,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Center(
+          child: Text(
+            "Log Your Emotions",
+            style: TextStyle(fontSize: 18, color: Colors.white),
+          ),
+        ),
+      ),
     );
   }
 
@@ -145,11 +140,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(child: _buildNavButton(context, "Forum", Icons.forum, ForumHome(), const Color.fromARGB(255, 30, 199, 233))),
+        Expanded(child: _buildNavButton(context, "Forum", Icons.forum, ForumHome(), Colors.cyan)),
         SizedBox(width: 10),
-        Expanded(child: _buildNavButton(context, "Journal", Icons.book, JournalHome(), const Color.fromARGB(255, 59, 141, 255))),
+        Expanded(child: _buildNavButton(context, "Journal", Icons.book, JournalHome(), Colors.blueAccent)),
         SizedBox(width: 10),
-        Expanded(child: _buildNavButton(context, "Lily-Chatbot", Icons.smart_toy, ChatbotScreen(), const Color.fromARGB(255, 74, 195, 167))),
+        Expanded(child: _buildNavButton(context, "Lily", Icons.smart_toy, ChatbotScreen(), Colors.teal)),
       ],
     );
   }
@@ -173,6 +168,130 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(text, style: TextStyle(fontSize: 16, color: Colors.white)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInsightsSection() {
+  List<String> insights = [
+    "Mindfulness",
+    "Stress Relief",
+    "Daily Motivation",
+    "Positive Habits",
+    "Emotional Balance",
+    "Focus Boost",
+    "Sleep Quality"
+  ];
+
+  return Container(
+    height: 180, // Taller for a portrait-like shape
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: insights.length,
+      itemBuilder: (context, index) {
+        return _buildInsightCard(insights[index]);
+      },
+    ),
+  );
+}
+
+Widget _buildInsightCard(String title) {
+  return Container(
+    width: 120, // Portrait shape
+    margin: EdgeInsets.symmetric(horizontal: 8),
+    decoration: BoxDecoration(
+      color: Colors.blueGrey,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Center(
+      child: Text(title, style: TextStyle(color: Colors.white, fontSize: 14)),
+    ),
+  );
+}
+
+
+  Widget _buildMusicRecommendations() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.deepPurple,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text("Main Recommendation", style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ),
+        SizedBox(width: 10),
+        Column(
+          children: [
+            _buildSmallMusicTile("Feel It"),
+            SizedBox(height: 10),
+            _buildSmallMusicTile("Forget It"),
+            SizedBox(height: 10),
+            _buildSmallMusicTile("Deepen It"),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildSmallMusicTile(String title) {
+    return Container(
+      width: 100,
+      height: 35,
+      decoration: BoxDecoration(
+        color: Colors.purpleAccent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(title, style: TextStyle(color: Colors.white, fontSize: 12)),
+      ),
+    );
+  }
+
+  Widget _buildActivityTracker() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text("Today's Progress", style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ),
+        SizedBox(width: 10),
+        Column(
+          children: [
+            _buildSmallActivityTile("Steps"),
+            SizedBox(height: 10),
+            _buildSmallActivityTile("Calories"),
+            SizedBox(height: 10),
+            _buildSmallActivityTile("Meditation"),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildSmallActivityTile(String title) {
+    return Container(
+      width: 100,
+      height: 35,
+      decoration: BoxDecoration(
+        color: Colors.greenAccent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(title, style: TextStyle(color: Colors.white, fontSize: 12)),
       ),
     );
   }
