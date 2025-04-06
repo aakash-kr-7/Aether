@@ -5,6 +5,7 @@ import '../auth/login_screen.dart';
 import '../forum/forum_home.dart';
 import '../journal/journal_home.dart';
 import '../chatbot/chatbot_screen.dart';
+import '../emotion/emotion_log_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -115,26 +116,42 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildEmotionLoggingTile() {
-    return GestureDetector(
-      onTap: () {
-        // TODO: Navigate to Emotion Logging Screen
-      },
-      child: Container(
-        height: 120,
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade700,
-          borderRadius: BorderRadius.circular(15),
+  return GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EmotionLogScreen(userId: 'your_user_id'), // Pass actual userId
         ),
-        child: Center(
-          child: Text(
-            "Log Your Emotions",
-            style: TextStyle(fontSize: 18, color: Colors.white),
-          ),
+      );
+
+      if (result == 'completed') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Feel free to log again anytime!')),
+        );
+
+        setState(() {
+          // If you want to update something visually in the home screen
+        });
+      }
+    },
+    child: Container(
+      height: 120,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade700,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Center(
+        child: Text(
+          "Log Your Emotions",
+          style: TextStyle(fontSize: 18, color: Colors.white),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildButtonRow(BuildContext context) {
     return Row(
