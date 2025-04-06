@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(),
           ),
           Positioned(
-            top: 55,
+            top: 75,
             left: 0,
             right: 0,
             child: Center(
