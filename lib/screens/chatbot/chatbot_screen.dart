@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/chatbot_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,6 +43,22 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     }
   }
 
+  Future<void> _saveChat() async {
+    if (_selectedChatId == null) {
+      final newDoc = await FirebaseFirestore.instance.collection('chats').add({
+        'messages': messages,
+      });
+      setState(() {
+        _selectedChatId = newDoc.id;
+        _chatSessions.add(newDoc.id);
+      });
+    } else {
+      await FirebaseFirestore.instance.collection('chats').doc(_selectedChatId).update({
+        'messages': messages,
+      });
+    }
+  }
+
   Future<void> _sendMessage() async {
     String userMessage = _controller.text.trim();
     if (userMessage.isEmpty) return;
@@ -61,6 +78,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       setState(() {
         messages.removeLast();
         messages.add({"bot": botResponse.isNotEmpty ? botResponse : "Hmm... I'm not sure how to respond to that."});
+        _isLoading = false;
       });
 
       await _saveChat();
@@ -68,97 +86,125 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       setState(() {
         messages.removeLast();
         messages.add({"bot": "Oops! Something went wrong."});
+        _isLoading = false;
       });
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _saveChat() async {
-    if (_selectedChatId == null) {
-      final newChat = await FirebaseFirestore.instance.collection('chats').add({"messages": messages});
-      setState(() {
-        _selectedChatId = newChat.id;
-        _chatSessions.add(newChat.id);
-      });
-    } else {
-      await FirebaseFirestore.instance.collection('chats').doc(_selectedChatId).update({"messages": messages});
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Lily - AI Chatbot", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue[800],
-        actions: [
-          DropdownButton<String>(
-            dropdownColor: Colors.blue[700],
-            value: _selectedChatId,
-            hint: Text("Chat History", style: TextStyle(color: Colors.white)),
-            items: _chatSessions.map((chatId) {
-              return DropdownMenuItem<String>(
-                value: chatId,
-                child: Text("Session: $chatId", style: TextStyle(color: Colors.white)),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) _loadChatHistory(value);
-            },
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF0F2027),
+              Color(0xFF203A43),
+              Color(0xFF2C5364),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(10),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                bool isUser = messages[index].containsKey("user");
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 5),
-                    padding: EdgeInsets.all(10),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-                    decoration: BoxDecoration(
-                      color: isUser ? Colors.blue[300] : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: AssetImage('assets/images/lily_icon.png'),
                     ),
-                    child: Text(
-                      messages[index].values.first,
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                    SizedBox(width: 12),
+                    Text(
+                      "Lily",
+                      style: GoogleFonts.dancingScript(
+                        fontSize: 30,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-          if (_isLoading) Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator()),
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: "Type a message...",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+                  ],
                 ),
-                SizedBox(width: 10),
-                IconButton(
-                  icon: Icon(Icons.send, color: Colors.blue[800]),
-                  onPressed: _sendMessage,
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.all(10),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = messages[index];
+                    final isUser = msg.containsKey('user');
+                    final message = msg.values.first;
+
+                    return Align(
+                      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+                        margin: EdgeInsets.symmetric(vertical: 4),
+                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: isUser ? Colors.blueAccent : const Color.fromARGB(255, 156, 230, 240),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: isUser
+                            ? Text(
+                                message,
+                                style: TextStyle(color: Colors.white),
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 12,
+                                    backgroundImage: AssetImage('assets/images/lily_icon.png'),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      message,
+                                      style: TextStyle(color: Colors.black87),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Type your message...',
+                          hintStyle: TextStyle(color: Colors.white54),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.1),
+                        ),
+                        onSubmitted: (value) => _sendMessage(),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.send, color: Colors.white),
+                      onPressed: _sendMessage,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -121,7 +121,7 @@ Widget build(BuildContext context) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EmotionLogScreen(userId: 'your_user_id'), // Pass actual userId
+          builder: (context) => EmotionLogScreen(userId: _authService.currentUserId!), // Pass actual userId
         ),
       );
 
