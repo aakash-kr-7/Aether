@@ -6,6 +6,8 @@ import '../forum/forum_home.dart';
 import '../journal/journal_home.dart';
 import '../chatbot/chatbot_screen.dart';
 import '../emotion/emotion_log_screen.dart';
+import '../music/music_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -61,25 +63,40 @@ Widget build(BuildContext context) {
       ],
     ),
     drawer: Drawer(
-      backgroundColor: Colors.blue.shade800,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue.shade700),
-            child: Text(
-              "Menu",
-              style: GoogleFonts.pacifico(fontSize: 28, color: Colors.white),
-            ),
-          ),
-          _buildDrawerItem(Icons.person, "Profile"),
-          _buildDrawerItem(Icons.music_note, "Music Recommendations"),
-          _buildDrawerItem(Icons.article, "Insights"),
-          _buildDrawerItem(Icons.run_circle, "Activity Tracker"),
-        ],
+  backgroundColor: Colors.blue.shade800,
+  child: ListView(
+    padding: EdgeInsets.zero,
+    children: [
+      DrawerHeader(
+        decoration: BoxDecoration(color: Colors.blue.shade700),
+        child: Text(
+          "Menu",
+          style: GoogleFonts.pacifico(fontSize: 28, color: Colors.white),
+        ),
       ),
-    ),
-    body: SingleChildScrollView(  // Wrap the body content with SingleChildScrollView
+      _buildDrawerItem(Icons.person, "Profile", onTap: () {
+        // Add navigation later
+        Navigator.pop(context); // Close the drawer
+      }),
+      _buildDrawerItem(Icons.music_note, "Music Recommendations", onTap: () {
+        Navigator.pop(context); // Close the drawer first
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MusicRecommendationScreen(userId: _authService.currentUserId!)),
+        );
+      }),
+      _buildDrawerItem(Icons.article, "Insights", onTap: () {
+        // Add navigation later
+        Navigator.pop(context);
+      }),
+      _buildDrawerItem(Icons.run_circle, "Activity Tracker", onTap: () {
+        // Add navigation later
+        Navigator.pop(context);
+      }),
+    ],
+  ),
+  ),
+  body: SingleChildScrollView(  // Wrap the body content with SingleChildScrollView
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
@@ -98,9 +115,9 @@ Widget build(BuildContext context) {
           _buildSectionTitle("Activity Tracker"),
           _buildActivityTracker(),
         ],
-      ),
-    ),
-  );
+),
+),
+);
 }
 
 
@@ -313,11 +330,11 @@ Widget _buildInsightCard(String title) {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title) {
+  Widget _buildDrawerItem(IconData icon, String title, {VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: Colors.white),
       title: Text(title, style: TextStyle(color: Colors.white)),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 }

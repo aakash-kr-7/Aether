@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/emotion_log.dart';
+import 'recommendation_service.dart';
 
 class EmotionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -11,6 +12,9 @@ class EmotionService {
           .doc(userId)
           .collection('checkins') // Changed from daily_checkins
           .add(log.toMap()); // Changed from .doc(...).set(...)
+
+          await RecommendationService().generateAndStoreRecommendations(userId);
+
     } catch (e) {
       rethrow;
     }
