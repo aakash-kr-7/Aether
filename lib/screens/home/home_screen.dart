@@ -7,6 +7,8 @@ import '../journal/journal_home.dart';
 import '../chatbot/chatbot_screen.dart';
 import '../emotion/emotion_log_screen.dart';
 import '../music/music_screen.dart';
+import '../insights/insights_screen.dart';
+
 
 
 class HomeScreen extends StatefulWidget {
@@ -86,8 +88,11 @@ Widget build(BuildContext context) {
         );
       }),
       _buildDrawerItem(Icons.article, "Insights", onTap: () {
-        // Add navigation later
         Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => InsightsScreen()),
+        );
       }),
       _buildDrawerItem(Icons.run_circle, "Activity Tracker", onTap: () {
         // Add navigation later
