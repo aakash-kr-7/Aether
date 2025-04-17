@@ -6,151 +6,154 @@ class InsightService {
 
   /// Converts check-in responses to tags
   List<String> generateTagsFromCheckin({
-    required String? mood,
-    required String? primaryEmotion,
-    required double? sleepQuality,
-    required String? bodyFeeling,
-    required String? nutrition,
-    required List<String>? supportNeeded,
-    required String? musicIntent,
-    required String? dailyGoal,
-  }) {
-    final List<String> tags = [];
+  required String? mood,
+  required String? primaryEmotion,
+  required double? sleepQuality,
+  required String? bodyFeeling,
+  required String? nutrition,
+  required List<String>? supportNeeded,
+  required String? musicIntent,
+  required String? dailyGoal,
+}) {
+  final List<String> tags = [];
 
-    // Mood to tag
-    if (mood != null) tags.add(mood.toLowerCase());
-
-    // Primary emotion
-    if (primaryEmotion != null) tags.add(primaryEmotion.toLowerCase());
-
-    // Sleep Quality
-    if (sleepQuality != null) {
-      if (sleepQuality >= 8) tags.add('good sleep');
-      else if (sleepQuality <= 4) tags.add('poor sleep');
-      else tags.add('moderate sleep');
-    }
-
-    // Body
-    if (bodyFeeling != null) tags.add(bodyFeeling.toLowerCase());
-
-    // Nutrition
-    if (nutrition != null) {
-      switch (nutrition) {
-        case 'Yes, I ate well ✅':
-          tags.add('good nutrition');
-          break;
-        case 'I skipped meals ⏳':
-          tags.add('skipped meals');
-          break;
-        case 'Ate unhealthy food 🍕':
-          tags.add('unhealthy food');
-          break;
-        case 'Didn’t eat much at all 🚫':
-          tags.add('low appetite');
-          break;
-      }
-    }
-
-    // Support Needed
-    if (supportNeeded != null) {
-      for (var item in supportNeeded) {
-        if (item.contains('Motivation')) tags.add('motivation');
-        else if (item.contains('Relaxation')) tags.add('relaxation');
-        else if (item.contains('Healing')) tags.add('emotional healing');
-        else if (item.contains('Clarity')) tags.add('mental clarity');
-        else if (item.contains('Energy')) tags.add('energy');
-      }
-    }
-
-    // Music Intent
-    if (musicIntent != null) {
-      if (musicIntent.contains('Lift')) tags.add('uplifting music');
-      else if (musicIntent.contains('Process')) tags.add('processing emotion');
-      else if (musicIntent.contains('Deepen')) tags.add('deepen emotion');
-    }
-
-    // Daily Goal
-    if (dailyGoal != null) {
-      switch (dailyGoal) {
-        case 'Drink More Water 💧':
-          tags.add('hydration');
-          break;
-        case 'Take a Walk 🚶‍♂️':
-          tags.add('physical activity');
-          break;
-        case 'Deep Breathing Exercise 🌬️':
-          tags.add('breathing exercise');
-          break;
-        case 'Read Something Inspiring 📖':
-          tags.add('inspiration');
-          break;
-        case 'Connect with Someone ☎️':
-          tags.add('connection');
-          break;
-      }
-    }
-
-    return tags;
+  // Mood
+  if (mood != null) {
+    tags.add('mood_${mood.toLowerCase()}'); // e.g., mood_happy
   }
+
+  // Primary Emotion
+  if (primaryEmotion != null) {
+    tags.add('emotion_${primaryEmotion.toLowerCase().replaceAll(' ', '_')}'); // e.g., emotion_self_doubt
+  }
+
+  // Sleep Quality → bucketed into ranges
+  if (sleepQuality != null) {
+    if (sleepQuality >= 9) tags.add('sleep_9_10');
+    else if (sleepQuality >= 7) tags.add('sleep_7_8');
+    else if (sleepQuality >= 4) tags.add('sleep_4_6');
+    else tags.add('sleep_1_3');
+  }
+
+  // Body Feeling
+  if (bodyFeeling != null) {
+    tags.add('body_${bodyFeeling.toLowerCase().replaceAll(' ', '_')}');
+  }
+
+  // Nutrition
+  if (nutrition != null) {
+    switch (nutrition) {
+      case 'Yes, I ate well ✅':
+        tags.add('nutrition_good');
+        break;
+      case 'I skipped meals ⏳':
+        tags.add('nutrition_skipped');
+        break;
+      case 'Ate unhealthy food 🍕':
+        tags.add('nutrition_unhealthy');
+        break;
+      case 'Didn’t eat much at all 🚫':
+        tags.add('nutrition_little');
+        break;
+    }
+  }
+
+  // Support Needed
+  if (supportNeeded != null) {
+    for (var support in supportNeeded) {
+      if (support.contains('Motivation')) tags.add('support_motivation');
+      else if (support.contains('Relaxation')) tags.add('support_relaxation');
+      else if (support.contains('Healing')) tags.add('support_emotional');
+      else if (support.contains('Clarity')) tags.add('support_clarity');
+      else if (support.contains('Energy')) tags.add('support_energy');
+    }
+  }
+
+  // Music Intent
+  if (musicIntent != null) {
+    if (musicIntent.contains('Lift')) tags.add('music_lift');
+    else if (musicIntent.contains('Process')) tags.add('music_process');
+    else if (musicIntent.contains('Deepen')) tags.add('music_deepen');
+  }
+
+  // Daily Goal
+  if (dailyGoal != null) {
+    if (dailyGoal.contains('Water')) tags.add('goal_water');
+    else if (dailyGoal.contains('Walk')) tags.add('goal_walk');
+    else if (dailyGoal.contains('Breathing')) tags.add('goal_breathing');
+    else if (dailyGoal.contains('Read')) tags.add('goal_read');
+    else if (dailyGoal.contains('Connect')) tags.add('goal_connect');
+  }
+
+  return tags;
+}
+
 
   /// Generate insights from generated tags
   Future<void> generateInsightsAfterCheckin(String uid, List<String> tags) async {
-    final Set<String> seen = {};
-    final List<Insight> finalInsights = [];
+  final Set<String> seen = {};
+  final List<Insight> finalInsights = [];
 
-    for (String tag in tags) {
-      final querySnapshot = await _firestore
-          .collection('insights_repository')
-          .where('tags', arrayContains: tag)
-          .limit(5)
-          .get();
+  for (String tag in tags) {
+    final querySnapshot = await _firestore
+        .collection('insights_repository')
+        .where('tags', arrayContains: tag)
+        .limit(5)
+        .get();
 
-      for (var doc in querySnapshot.docs) {
-        if (!seen.contains(doc.id)) {
-          finalInsights.add(Insight.fromFirestore(doc.id, doc.data()));
-          seen.add(doc.id);
-        }
+    print("🔍 Tag '$tag' → Found ${querySnapshot.docs.length} insights");
+
+    for (var doc in querySnapshot.docs) {
+      if (!seen.contains(doc.id)) {
+        finalInsights.add(Insight.fromFirestore(doc.id, doc.data()));
+        seen.add(doc.id);
       }
     }
-
-    // Store in insights_generated subcollection
-    for (var insight in finalInsights) {
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('insights_generated')
-          .add({
-        ...insight.toMap(),
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-    }
   }
+
+  print("💾 Total insights to be stored: ${finalInsights.length}");
+
+  for (var insight in finalInsights) {
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('insights_generated')
+        .add({
+      ...insight.toMap(),
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  print("✅ Stored ${finalInsights.length} insights in Firestore");
+}
 
   /// Final function to call after check-in is completed
   Future<void> handleCheckinAndGenerateInsights({
-    required String uid,
-    required String? mood,
-    required String? primaryEmotion,
-    required double? sleepQuality,
-    required String? bodyFeeling,
-    required String? nutrition,
-    required List<String>? supportNeeded,
-    required String? musicIntent,
-    required String? dailyGoal,
-  }) async {
-    final tags = generateTagsFromCheckin(
-      mood: mood,
-      primaryEmotion: primaryEmotion,
-      sleepQuality: sleepQuality,
-      bodyFeeling: bodyFeeling,
-      nutrition: nutrition,
-      supportNeeded: supportNeeded,
-      musicIntent: musicIntent,
-      dailyGoal: dailyGoal,
-    );
+  required String uid,
+  required String? mood,
+  required String? primaryEmotion,
+  required double? sleepQuality,
+  required String? bodyFeeling,
+  required String? nutrition,
+  required List<String>? supportNeeded,
+  required String? musicIntent,
+  required String? dailyGoal,
+}) async {
+  final tags = generateTagsFromCheckin(
+    mood: mood,
+    primaryEmotion: primaryEmotion,
+    sleepQuality: sleepQuality,
+    bodyFeeling: bodyFeeling,
+    nutrition: nutrition,
+    supportNeeded: supportNeeded,
+    musicIntent: musicIntent,
+    dailyGoal: dailyGoal,
+  );
 
-    await generateInsightsAfterCheckin(uid, tags);
-  }
+  print("🧠 Generated Tags for Insights: $tags");
+
+  await generateInsightsAfterCheckin(uid, tags);
+}
 
   /// Like an insight
   Future<void> likeInsight(String uid, Insight insight) async {

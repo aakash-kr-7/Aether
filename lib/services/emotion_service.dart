@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/emotion_log.dart';
 import 'recommendation_service.dart';
+import 'insight_service.dart';
 
 class EmotionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,6 +15,19 @@ class EmotionService {
           .add(log.toMap()); // Changed from .doc(...).set(...)
 
           await RecommendationService().generateAndStoreRecommendations(userId);
+
+          await InsightService().handleCheckinAndGenerateInsights(
+            uid: userId,
+            mood: log.mood,
+            primaryEmotion: log.primaryEmotion,
+            sleepQuality: log.sleepQuality,
+            bodyFeeling: log.bodyFeeling,
+            nutrition: log.nutrition,
+            supportNeeded: log.supportNeeded,
+            musicIntent: log.musicIntent,
+            dailyGoal: log.dailyGoal,
+            );
+
 
     } catch (e) {
       rethrow;
