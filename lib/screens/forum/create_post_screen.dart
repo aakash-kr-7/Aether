@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/forum_service.dart';
@@ -44,29 +46,93 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text("Create Post", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.blue[800]?.withOpacity(0.7),
+        title: Text("Create Post", style: GoogleFonts.poppins(color: Colors.white)),
+        elevation: 0,
         actions: [
-          IconButton(icon: Icon(Icons.check, color: Colors.white), onPressed: _submitPost)
+          IconButton(
+            icon: Icon(Icons.check, color: Colors.white),
+            onPressed: _submitPost,
+          ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(hintText: "Enter post title..."),
-              maxLines: 1,
+      body: Stack(
+        children: [
+          // Gradient Background
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromARGB(255, 3, 93, 105),
+                  Color.fromARGB(255, 5, 68, 97),
+                  Color.fromARGB(255, 5, 28, 61),
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _contentController,
-              decoration: InputDecoration(hintText: "Enter post content..."),
-              maxLines: 5,
+          ),
+
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // "What's on your mind?" text
+                  Text(
+                    "What's on your mind?",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Title field
+                  _buildTextField(
+                    controller: _titleController,
+                    hint: "Enter post title...",
+                    maxLines: 1,
+                  ),
+                  SizedBox(height: 20),
+
+                  // Content field
+                  _buildTextField(
+                    controller: _contentController,
+                    hint: "Enter post content...",
+                    maxLines: 10,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.15),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
         ),
       ),
     );
