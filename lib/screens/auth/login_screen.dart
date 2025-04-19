@@ -5,8 +5,12 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:ui';
 
 // Import backend dependencies
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 import '../home/home_screen.dart';
+import '../home/onboardingscreen.dart';
 import 'register_screen.dart';
 
 void main() {
@@ -35,57 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     setState(() => _isLoading = false);
 
-    void _showGlassToast(String message) {
-  final overlay = Overlay.of(context);
-  final overlayEntry = OverlayEntry(
-    builder: (context) => Positioned(
-      bottom: 50,
-      left: 30,
-      right: 30,
-      child: Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Center(
-                child: Text(
-                  message,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.5),
-                        offset: Offset(1, 1),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  overlay.insert(overlayEntry);
-
-  Future.delayed(Duration(seconds: 2), () {
-    overlayEntry.remove();
-  });
-}
-
     if (user != null) {
       Navigator.pushReplacement(
         context,
@@ -95,6 +48,120 @@ class _LoginScreenState extends State<LoginScreen> {
       _showGlassToast("Login Failed! Check your credentials.");
     }
   }
+
+  void _showGlassToast(String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 30,
+        right: 30,
+        child: Material(
+          color: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: Center(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 4,
+                          color: Colors.black.withOpacity(0.5),
+                          offset: Offset(1, 1),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
+  }
+
+  void _signInWithGoogle() async {
+  setState(() => _isLoading = true);
+  try {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      setState(() => _isLoading = false);
+      return; // User cancelled the sign-in process
+    }
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+    final user = userCredential.user;
+
+    if (user != null) {
+      final firestore = FirebaseFirestore.instance;
+      final userRef = firestore.collection('users').doc(user.uid);
+
+      // Check if user exists in Firestore
+      final docSnapshot = await userRef.get();
+      if (!docSnapshot.exists) {
+        // New user, set necessary fields
+        await userRef.set({
+          'onboardingComplete': false,  // Set to false for new users
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // If onboarding is not complete, navigate to OnboardingScreen
+      bool onboardingComplete = docSnapshot.data()?['onboardingComplete'] ?? false;
+      if (!onboardingComplete) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => OnboardingScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
+    }
+  } catch (e) {
+    print('Google Sign-In error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Google Sign-In failed. Try again."),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  } finally {
+    setState(() => _isLoading = false);
+  }
+}
+
 
   Widget _buildTextField(TextEditingController controller, String labelText, bool obscureText, IconData icon) {
     return TextField(
@@ -198,6 +265,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
+                        SizedBox(height: 10),
+                        Center(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.white70),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              ),
+                              icon: Image.asset(
+                                'assets/images/google_icon.png', // make sure to add this asset!
+                                height: 24,
+                                width: 24,
+                                ),
+                                onPressed: _signInWithGoogle,
+                                label: Text(
+                                  "Continue with Google",
+                                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500),
+                                  ),
+                                  ),
+                                ),
                         SizedBox(height: 15),
                         Center(
                           child: GestureDetector(

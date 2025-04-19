@@ -25,66 +25,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isLoading = false;
 
-  void _signUp() async {
-    setState(() => _isLoading = true);
-    var user = await _authService.signUp(
-      emailController.text,
-      passwordController.text,
-    );
-    setState(() => _isLoading = false);
-
-     void _showGlassToast(String message) {
-  final overlay = Overlay.of(context);
-  final overlayEntry = OverlayEntry(
-    builder: (context) => Positioned(
-      bottom: 50,
-      left: 30,
-      right: 30,
-      child: Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Center(
-                child: Text(
-                  message,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.5),
-                        offset: Offset(1, 1),
-                      ),
-                    ],
+  void _showGlassToast(String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 50,
+        left: 30,
+        right: 30,
+        child: Material(
+          color: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: Center(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 4,
+                          color: Colors.black.withOpacity(0.5),
+                          offset: Offset(1, 1),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
 
-  overlay.insert(overlayEntry);
+    overlay.insert(overlayEntry);
 
-  Future.delayed(Duration(seconds: 2), () {
-    overlayEntry.remove();
-  });
-}
+    Future.delayed(Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
+  }
+
+  void _signUp() async {
+    setState(() => _isLoading = true);
+    var user = await _authService.signUp(
+      emailController.text.trim(),
+      passwordController.text.trim(),
+    );
+    setState(() => _isLoading = false);
 
     if (user != null) {
+      _showGlassToast("Signup Successful!");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -117,18 +118,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
           Positioned(
-          top: 40,
-          right: 20,
-          child: IconButton(
-            icon: Icon(Icons.login, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
+            top: 40,
+            right: 20,
+            child: IconButton(
+              icon: Icon(Icons.login, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
           ),
-        ),
           Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(top: 180, left: 24, right: 24, bottom: 24),
@@ -198,7 +199,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         SizedBox(height: 30),
                         _isLoading
-                            ? Center(child: CircularProgressIndicator(color: Colors.white))
+                            ? Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              )
                             : SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(

@@ -10,7 +10,7 @@ import 'screens/home/onboardingscreen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseFirestore.instance.clearPersistence(); // Clear cache
+  //await FirebaseFirestore.instance.clearPersistence(); // Clear cache
   runApp(MyApp());
 }
 
