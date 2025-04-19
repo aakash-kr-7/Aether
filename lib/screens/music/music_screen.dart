@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/music_recommendation.dart';
 import '../../services/recommendation_service.dart';
@@ -99,128 +101,151 @@ class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
   }
 
   @override
- Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFF121212), // Dark background for premium feel
-    appBar: AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: const Text(
-        'Your Music Recommendations',
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh, color: Colors.white),
-          onPressed: _loadRecommendations,
-        ),
-      ],
-    ),
-    body: _isLoading
-        ? const Center(child: CircularProgressIndicator(color: Colors.white))
-        : _errorMessage != null
-            ? Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.white)))
-            : _recommendedTracks.isEmpty
-                ? const Center(child: Text('No tracks available.', style: TextStyle(color: Colors.white)))
-                : ListView(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    children: [
-                      if (_mood != null && _recommendedTracks.isNotEmpty)
-                        _buildRecommendationSection('Since you were feeling $_mood, here are your tracks:', _recommendedTracks),
-                      if (_primaryEmotion != null && _recommendedTracks.isNotEmpty)
-                        _buildRecommendationSection('Since you were feeling $_primaryEmotion, here are your tracks:', _recommendedTracks),
-                      if (_recommendedTracks.isNotEmpty)
-                        _buildRecommendationSection('Your Recently Played Tracks:', _recommendedTracks),
-                    ],
-                  ),
-  );
-}
-
-Widget _buildRecommendationSection(String title, List<MusicTrack> tracks) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color.fromARGB(255, 26, 75, 238), Color.fromARGB(255, 0, 138, 189)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 180,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: tracks.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              final track = tracks[index];
-              return GestureDetector(
-                onTap: () => _launchURL(track.trackUrl),
-                child: Container(
-                  width: 140,
-                  decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+        child: SafeArea(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.white))
+              : _errorMessage != null
+                  ? Center(
+                      child: Text(
+                        _errorMessage!,
+                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+                        textAlign: TextAlign.center,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        child: Image.network(
-                          track.albumArtUrl,
-                          height: 100,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            height: 100,
-                            color: Colors.grey,
-                            child: const Icon(Icons.music_note, color: Colors.white),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            'Your Music Recommendations',
+                            style: GoogleFonts.poppins(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
+                        const SizedBox(height: 20),
+                        if (_mood != null && _recommendedTracks.isNotEmpty)
+                          _buildRecommendationSection('Since you were feeling $_mood, here are your tracks:', _recommendedTracks),
+                        if (_primaryEmotion != null && _recommendedTracks.isNotEmpty)
+                          _buildRecommendationSection('Since you were feeling $_primaryEmotion, here are your tracks:', _recommendedTracks),
+                        if (_recommendedTracks.isNotEmpty)
+                          _buildRecommendationSection('Your Recently Played Tracks:', _recommendedTracks),
+                      ],
+                    ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecommendationSection(String title, List<MusicTrack> tracks) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 200,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: tracks.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 16),
+              itemBuilder: (context, index) {
+                final track = tracks[index];
+                return GestureDetector(
+                  onTap: () => _launchURL(track.trackUrl),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        width: 160,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              track.trackName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                              child: Image.network(
+                                track.albumArtUrl,
+                                height: 100,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  height: 100,
+                                  color: Colors.grey,
+                                  child: const Icon(Icons.music_note, color: Colors.white),
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              track.artistName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    track.trackName,
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    track.artistName,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

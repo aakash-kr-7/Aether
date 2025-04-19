@@ -39,12 +39,13 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   ];
 
   final List<Color> stickyNoteColors = [
-    Colors.yellow.shade200,
-    Colors.green.shade200,
-    Colors.blue.shade200,
-    Colors.pink.shade200,
-    Colors.orange.shade200,
+    Color(0xFFFFF9C4),
+    Color(0xFFB2EBF2),
+    Color(0xFFC8E6C9),
+    Color(0xFFFFCCBC),
+    Color(0xFFD1C4E9),
   ];
+
 
   @override
   void initState() {
@@ -106,16 +107,8 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     }
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    Color textColor = Colors.black; // Default text color
-    Color bgColor = Colors.brown; // Default background color
-
-    // Check if background is green, set text to white
-    if (bgColor == Colors.green) {
-      textColor = Colors.white;
-    }
-
     return Scaffold(
       body: Hero(
         tag: 'journal-entry',
@@ -123,158 +116,203 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
           width: double.infinity,
           height: double.infinity,
           decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage("assets/images/entryj.png"),
-              fit: BoxFit.cover,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color.fromARGB(255, 41, 182, 175),
+                Color(0xFF0ED2F7),
+              ],
             ),
           ),
-          child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                  color: Colors.brown.withOpacity(0.8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                color: Colors.transparent,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.entry == null ? "A New Memory" : "Edit Memory",
+                      style: GoogleFonts.sacramento(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.check, color: Colors.white, size: 28),
+                      onPressed: _saveEntry,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.entry == null ? "A New Memory" : "Edit Memory",
-                        style: GoogleFonts.dancingScript(
-                          fontSize: 26, color: textColor,
+                      _buildCard(TextField(
+                        controller: _titleController,
+                        style: GoogleFonts.patrickHand(fontSize: 22, color: Colors.black87),
+                        decoration: InputDecoration(
+                          hintText: "Entry Title",
+                          hintStyle: GoogleFonts.patrickHand(color: Colors.black54, fontSize: 20),
+                          border: InputBorder.none,
+                        ),
+                      )),
+                      SizedBox(height: 12),
+                      _buildCard(
+                        Container(
+                          height: 350,
+                        child: TextField(
+                        controller: _contentController,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        style: GoogleFonts.patrickHand(fontSize: 20, color: Colors.black87),
+                        decoration: InputDecoration(
+                          hintText: "Write your thoughts...",
+                          hintStyle: GoogleFonts.patrickHand(color: Colors.black54, fontSize: 20),
+                          border: InputBorder.none,
+                        ),
+                      ))),
+                      SizedBox(height: 16),
+                      Text("How do you feel?", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black54)),
+                      SizedBox(height: 8),
+                      Container(
+                        height: 48,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: moods.length,
+                          itemBuilder: (context, index) {
+                            final mood = moods[index];
+                            final isSelected = _selectedMood == mood['mood'];
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedMood = mood['mood']!;
+                                });
+                              },
+                              child: Container(
+                                margin: EdgeInsets.symmetric(horizontal: 6),
+                                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? Colors.blueAccent : Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(mood['emoji']!, style: TextStyle(fontSize: 18)),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      mood['mood']!,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: isSelected ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.check, color: textColor),
-                        onPressed: _saveEntry,
+                      SizedBox(height: 20),
+                      _buildCard(
+                        TextField(
+                          controller: _noteController,
+                          style: GoogleFonts.poppins(fontSize: 15, color: Colors.black),
+                          decoration: InputDecoration(
+                            hintText: "Add a note",
+                            border: InputBorder.none,
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: _addNote,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children: _notes.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          String note = entry.value;
+                          return Container(
+                            width: 130,
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: stickyNoteColors[index % stickyNoteColors.length],
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 4,
+                                  offset: Offset(2, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  note,
+                                  style: GoogleFonts.patrickHand(
+                                      fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black),
+                                ),
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => _notes.remove(note)),
+                                    child: Icon(Icons.close, size: 16, color: Colors.black54),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _titleController,
-                          decoration: InputDecoration(
-                            hintText: "Entry Title",
-                            hintStyle: TextStyle(color: textColor),
-                          ),
-                          style: TextStyle(color: textColor),
-                        ),
-                        SizedBox(height: 16.0),
-                        TextField(
-                          controller: _contentController,
-                          decoration: InputDecoration(
-                            hintText: "Write your thoughts...",
-                            hintStyle: TextStyle(color: textColor),
-                          ),
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                          style: TextStyle(color: textColor),
-                        ),
-                        SizedBox(height: 16.0),
-                        Container(
-                          height: 50,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: moods.length,
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedMood = moods[index]['mood']!;
-                                  });
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 6),
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: _selectedMood == moods[index]['mood']
-                                        ? Colors.brown
-                                        : Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(moods[index]['emoji']!, style: TextStyle(fontSize: 20)),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        moods[index]['mood']!,
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        SizedBox(height: 16.0),
-                        TextField(
-                          controller: _noteController,
-                          decoration: InputDecoration(
-                            hintText: "Add a note",
-                            hintStyle: TextStyle(color: Colors.black),
-                            suffixIcon: IconButton(icon: Icon(Icons.add), onPressed: _addNote),
-                          ),
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        SizedBox(height: 8.0),
-                        Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: _notes.asMap().entries.map((entry) {
-                            int index = entry.key;
-                            String note = entry.value;
-                            return Container(
-                              width: 120,
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: stickyNoteColors[index % stickyNoteColors.length],
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black,
-                                    blurRadius: 4,
-                                    offset: Offset(2, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    note,
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                                  ),
-                                  Align(
-                                    alignment: Alignment.bottomRight,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() => _notes.remove(note));
-                                      },
-                                      child: Icon(Icons.close, size: 16, color: Colors.black54),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+Widget _buildCard(Widget child) {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 8,
+          offset: Offset(2, 2),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
 }
