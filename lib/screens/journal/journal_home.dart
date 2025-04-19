@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/journal_service.dart';
 import '../../models/journal_entry.dart';
@@ -11,7 +12,6 @@ class JournalHome extends StatefulWidget {
   @override
   _JournalHomeState createState() => _JournalHomeState();
 }
-
 class _JournalHomeState extends State<JournalHome> with SingleTickerProviderStateMixin {
   final JournalService _journalService = JournalService();
   late AnimationController _controller;
@@ -40,6 +40,33 @@ class _JournalHomeState extends State<JournalHome> with SingleTickerProviderStat
     return DateFormat('yyyy-MM-dd – HH:mm').format(date);
   }
 
+  String getMoodIcon(String mood) {
+    switch (mood.toLowerCase()) {
+      case 'happy':
+        return '😊';
+      case 'sad':
+        return '😔';
+      case 'excited':
+        return '🤩';
+      case 'angry':
+        return '😠';
+      case 'anxious':
+        return '😰';
+      case 'grateful':
+        return '🙏';
+      case 'calm':
+        return '😌';
+      case 'tired':
+        return '😪';
+      case 'stressed':
+        return '😧';
+      case 'neutral':
+        return '😐';
+      default:
+        return '📖';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser;
@@ -63,87 +90,111 @@ class _JournalHomeState extends State<JournalHome> with SingleTickerProviderStat
     String userId = user.uid;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/jh.png',
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.teal, Colors.lightBlue],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          Column(
-            children: [
-              AppBar(
-                title: Text(
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 60),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
                   "Memory Log",
-                  style: GoogleFonts.pacifico(fontSize: 26, color: Colors.white),
+                  style: GoogleFonts.sacramento(fontSize: 60, color: Colors.white),
                 ),
-                backgroundColor: const Color.fromARGB(255, 54, 172, 109),
               ),
-              Expanded(
-                child: StreamBuilder<List<JournalEntry>>(
-                  stream: _journalService.getUserEntries(userId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-
-                    if (snapshot.hasError) {
-                      return Center(child: Text("Error loading entries.", style: TextStyle(color: Colors.black)));
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Text(
-                          "No entries yet!",
-                          style: TextStyle(fontSize: 18, color: Colors.black),
-                        ),
-                      );
-                    }
-
-                    final entries = snapshot.data!;
-
-                    return ListView.builder(
-                      itemCount: entries.length,
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        return AnimatedOpacity(
-                          duration: Duration(milliseconds: 800),
-                          opacity: 1.0,
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 4,
-                            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                            color: const Color.fromARGB(255, 200, 245, 208),
-                            child: ListTile(
-                              title: Text(entry.title.isNotEmpty ? entry.title : "Untitled", style: TextStyle(color: Colors.black)),
-                              subtitle: Text("Mood: ${entry.mood}\n${formatDate(entry.date)}", style: TextStyle(color: Colors.black)),
-                              leading: Icon(Icons.book, color: const Color.fromARGB(255, 76, 206, 65)),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    transitionDuration: Duration(milliseconds: 600),
-                                    pageBuilder: (context, animation, secondaryAnimation) => JournalDetailScreen(entry: entry),
-                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                      return FadeTransition(opacity: animation, child: child);
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+            ),
+            Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: DefaultTextStyle(
+          style: GoogleFonts.sacramento(fontSize: 27, color: Colors.white, fontWeight: FontWeight.bold),
+          child: AnimatedTextKit(
+            animatedTexts: [
+              TypewriterAnimatedText(
+                'Every moment matters...',
+                speed: Duration(milliseconds: 150),
               ),
             ],
+            totalRepeatCount: 1,
+            pause: const Duration(milliseconds: 1000),
           ),
-        ],
+        ),
+      ),
+    ),
+            Expanded(
+              child: StreamBuilder<List<JournalEntry>>(
+                stream: _journalService.getUserEntries(userId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error loading entries.", style: GoogleFonts.poppins(color: Colors.black)));
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text("No entries yet!", style: GoogleFonts.poppins(fontSize: 18, color: Colors.white)));
+                  }
+
+                  final entries = snapshot.data!;
+
+                  return ListView.builder(
+                    itemCount: entries.length,
+                    itemBuilder: (context, index) {
+                      final entry = entries[index];
+                      return AnimatedOpacity(
+                        duration: const Duration(milliseconds: 800),
+                        opacity: 1.0,
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                          color: const Color(0xFFA8E6CF),
+                          child: ListTile(
+                            leading: Text(
+                              getMoodIcon(entry.mood),
+                              style: const TextStyle(fontSize: 28),
+                            ),
+                            title: Text(
+                              entry.title.isNotEmpty ? entry.title : "Untitled",
+                              style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              "Mood: ${entry.mood}\n${formatDate(entry.date)}",
+                              style: GoogleFonts.poppins(color: Colors.black),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  transitionDuration: const Duration(milliseconds: 600),
+                                  pageBuilder: (context, animation, secondaryAnimation) => JournalDetailScreen(entry: entry),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    return FadeTransition(opacity: animation, child: child);
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: AnimatedBuilder(
         animation: _scaleAnimation,
@@ -151,13 +202,13 @@ class _JournalHomeState extends State<JournalHome> with SingleTickerProviderStat
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: FloatingActionButton(
-              backgroundColor: const Color.fromARGB(255, 76, 206, 65),
-              child: Icon(Icons.edit, color: Colors.white, size: 30),
+              backgroundColor: const Color(0xFF00BFA6),
+              child: const Icon(Icons.edit, color: Colors.white, size: 30),
               onPressed: () {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    transitionDuration: Duration(milliseconds: 600),
+                    transitionDuration: const Duration(milliseconds: 600),
                     pageBuilder: (context, animation, secondaryAnimation) => JournalEntryScreen(),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       return FadeTransition(opacity: animation, child: child);
