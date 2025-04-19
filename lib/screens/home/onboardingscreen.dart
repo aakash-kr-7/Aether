@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aether/models/onboarding_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:animate_gradient/animate_gradient.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 
 class OnboardingScreen extends StatefulWidget {
   @override
@@ -217,87 +220,178 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Map<String, dynamic> currentQuestion = questions[currentQuestionIndex];
+@override
+Widget build(BuildContext context) {
+  Map<String, dynamic> currentQuestion = questions[currentQuestionIndex];
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: previousQuestion,
+  return Scaffold(
+    backgroundColor: Colors.transparent,
+    body: Stack(
+      children: [
+        AnimateGradient(
+          primaryColors: [
+            Color.fromARGB(255, 116, 227, 235),
+            Color.fromARGB(255, 133, 169, 223),
+          ],
+          secondaryColors: [
+            Color.fromARGB(255, 0, 191, 201),
+            Color.fromARGB(255, 146, 254, 213),
+          ],
+          duration: Duration(seconds: 5),
+          child: Container(),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.exit_to_app),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              currentQuestion['question'],
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            if (currentQuestion.containsKey('type') && currentQuestion['type'] == 'slider')
-              Column(
-                children: [
-                  Slider(
-                    value: mentalWellBeingValue,
-                    min: 1,
-                    max: 10,
-                    divisions: 9,
-                    label: mentalWellBeingValue.round().toString(),
-                    onChanged: (value) {
-                      setState(() {
-                        mentalWellBeingValue = value;
-                        onboardingData = OnboardingModel.fromMap(
-                          {
-                            ...onboardingData.toMap(),
-                            'mentalWellBeing': mentalWellBeingValue.round().toString(),
-                          },
-                          onboardingData.userId,
-                        );
-                      });
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        SafeArea(
+          child: Column(
+            children: [
+              // Top bar with back and logout buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: previousQuestion,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.exit_to_app, color: Colors.white),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // Main scrollable content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, // Left-aligns the question
                     children: [
-                      Text("Struggling", style: TextStyle(color: Colors.red)),
-                      Text("Thriving", style: TextStyle(color: Colors.green)),
+                      SizedBox(height: 20),
+                      Text(
+                        currentQuestion['question'],
+                        textAlign: TextAlign.left,
+                        style: GoogleFonts.merriweather(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 30),
+
+                      if (currentQuestion.containsKey('type') &&
+                          currentQuestion['type'] == 'slider')
+                        Column(
+                          children: [
+                            Slider(
+                              value: mentalWellBeingValue,
+                              min: 1,
+                              max: 10,
+                              divisions: 9,
+                              label: mentalWellBeingValue.round().toString(),
+                              onChanged: (value) {
+                                setState(() {
+                                  mentalWellBeingValue = value;
+                                  onboardingData = OnboardingModel.fromMap(
+                                    {
+                                      ...onboardingData.toMap(),
+                                      'mentalWellBeing':
+                                          mentalWellBeingValue.round().toString(),
+                                    },
+                                    onboardingData.userId,
+                                  );
+                                });
+                              },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Struggling", style: TextStyle(color: Colors.red)),
+                                Text("Thriving", style: TextStyle(color: Colors.green)),
+                              ],
+                            ),
+                          ],
+                        )
+                      else
+                        Column(
+                          children: currentQuestion['options'].map<Widget>((option) {
+                            bool isSelected = onboardingData
+                                .toMap()[currentQuestion['key']]
+                                .contains(option);
+                            return GestureDetector(
+                              onTap: () => handleSelection(option),
+                              child: Container(
+                                margin: EdgeInsets.symmetric(vertical: 8),
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? null : Colors.grey[200],
+                                  gradient: isSelected
+                                      ? LinearGradient(
+                                          colors: [
+                                            Color.fromARGB(255, 46, 71, 199),
+                                            Color.fromARGB(255, 69, 128, 216),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        )
+                                      : null,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    option,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      color: isSelected ? Colors.white : Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                      SizedBox(height: 30),
+
+                      Center(
+                        child: FloatingActionButton(
+                          onPressed: nextQuestion,
+                          child: Text(
+                            currentQuestionIndex == questions.length - 1
+                                ? "Finish"
+                                : "Next",
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 40),
                     ],
                   ),
-                ],
-              )
-            else
-              ...currentQuestion['options'].map<Widget>((option) {
-                bool isSelected = onboardingData.toMap()[currentQuestion['key']].contains(option);
-                return GestureDetector(
-                  onTap: () => handleSelection(option),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(option, style: TextStyle(fontSize: 18, color: isSelected ? Colors.white : Colors.black)),
+                ),
+              ),
+
+              // Adjusted progress bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: (currentQuestionIndex + 1) / questions.length,
+                    backgroundColor: Colors.white.withOpacity(0.3),
+                    color: const Color.fromARGB(255, 68, 118, 255),
+                    minHeight: 8, // Slightly thicker for visibility
                   ),
-                );
-              }).toList(),
-            SizedBox(height: 30),
-            Center(child: ElevatedButton(onPressed: nextQuestion, child: Text(currentQuestionIndex == questions.length - 1 ? "Finish" : "Next"))),
-          ],
+                ),
+              ),
+              SizedBox(height: 10), // Not at the bottom edge
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 }
