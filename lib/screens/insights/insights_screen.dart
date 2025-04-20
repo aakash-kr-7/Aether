@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/insight.dart';
 import '../../services/insight_service.dart';
@@ -42,34 +44,60 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   Widget buildInsightCard(Insight insight, {bool isLiked = false}) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(insight.text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              children: insight.tags.map((tag) => Chip(label: Text(tag))).toList(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
             ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(insight.type.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                if (!isLiked)
-                  IconButton(
-                    icon: const Icon(Icons.favorite_border),
-                    onPressed: () => likeInsight(insight),
-                  )
+                Text(
+                  insight.text,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 6,
+                  children: insight.tags.map((tag) => Chip(
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    label: Text(tag, style: GoogleFonts.poppins(color: Colors.white)),
+                  )).toList(),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      insight.type.toUpperCase(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (!isLiked)
+                      IconButton(
+                        icon: const Icon(Icons.favorite_border, color: Colors.white),
+                        onPressed: () => likeInsight(insight),
+                      ),
+                  ],
+                )
               ],
-            )
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -78,8 +106,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Widget buildInsightSection(String title, List<Insight> insights, {bool isLiked = false}) {
     if (insights.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        child: Text("No $title yet.", style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic)),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        child: Text(
+          "No $title yet.",
+          style: GoogleFonts.poppins(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.white),
+        ),
       );
     }
 
@@ -87,8 +118,15 @@ class _InsightsScreenState extends State<InsightsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
         ...insights.map((insight) => buildInsightCard(insight, isLiked: isLiked)).toList(),
       ],
@@ -98,22 +136,42 @@ class _InsightsScreenState extends State<InsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Insights'),
-        backgroundColor: Colors.blue.shade700,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color.fromARGB(255, 26, 75, 238), Color.fromARGB(255, 0, 138, 189)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.white))
+              : RefreshIndicator(
+                  onRefresh: loadInsights,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 30),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          'Your Daily Insights',
+                          style: GoogleFonts.poppins(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      buildInsightSection('Recently Generated Insights', generatedInsights),
+                      buildInsightSection('Liked Insights', likedInsights, isLiked: true),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
+                ),
+        ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: loadInsights,
-              child: ListView(
-                children: [
-                  buildInsightSection('Recently Generated Insights', generatedInsights),
-                  buildInsightSection('Liked Insights', likedInsights, isLiked: true),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
     );
   }
 }

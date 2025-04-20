@@ -8,24 +8,24 @@ class RecommendationService {
   final String _apiKey = 'AIzaSyDKf71lai7DOR4vCHqKZHI3tovGxlZ_VJg'; // ⚠️ Make sure to use env variables in production
 
   final Map<String, String> moodToMusic = {
-    'Happy': 'upbeat happy songs',
-    'Calm': 'calming relaxing music',
-    'Sad': 'sad emotional songs',
-    'Neutral': 'chill background music',
-    'Angry': 'anger release rock music',
-    'Anxious': 'soothing anxiety relief music',
-    'Empty': 'ambient lonely melodies',
+    'Happy😁': 'upbeat happy songs',
+    'Calm😌': 'calming relaxing music',
+    'Sad😞': 'sad emotional songs',
+    'Neutral😑': 'chill background music',
+    'Angry😠': 'anger release rock music',
+    'Anxious😥': 'soothing anxiety relief music',
+    'Empty☹': 'ambient lonely melodies',
   };
 
   final Map<String, String> primaryEmotionToMusic = {
-    'Excitement': 'energetic workout playlist',
-    'Joy': 'feel good hits',
-    'Love': 'romantic love songs',
-    'Confidence': 'motivational hype music',
-    'Nostalgie': 'nostalgic throwback tracks',
-    'Overwhelm': 'calming stress relief music',
-    'Self-Doubt': 'empowering anthems',
-    'Resentment': 'intense cathartic tunes',
+    'Excitement🤩': 'energetic workout playlist',
+    'Joy😄': 'feel good hits',
+    'Love🥰': 'romantic love songs',
+    'Confidence😎': 'motivational hype music',
+    'Nostalgia🥹': 'nostalgic throwback tracks',
+    'Overwhelm🤯': 'calming stress relief music',
+    'Self-Doubt😣': 'empowering anthems',
+    'Resentment😒': 'intense cathartic tunes',
   };
 
  Future<void> generateAndStoreRecommendations(String userId) async {

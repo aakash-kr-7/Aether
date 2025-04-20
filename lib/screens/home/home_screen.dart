@@ -8,6 +8,8 @@ import '../chatbot/chatbot_screen.dart';
 import '../emotion/emotion_log_screen.dart';
 import '../music/music_screen.dart';
 import '../insights/insights_screen.dart';
+import '../insights/insight_detail_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 
@@ -25,6 +27,33 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => LoginScreen()));
   }
+
+  List<Map<String, dynamic>> insightsList = [];
+
+@override
+void initState() {
+  super.initState();
+  fetchInsights();
+}
+
+void fetchInsights() async {
+  final userId = _authService.currentUserId;
+  if (userId == null) return;
+
+  final snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('insights_generated')
+      .orderBy('timestamp', descending: true)
+      .get();
+
+  final loadedInsights = snapshot.docs.map((doc) => doc.data()).toList();
+
+  setState(() {
+    insightsList = loadedInsights.cast<Map<String, dynamic>>();
+  });
+}
+
 
   Widget _buildSectionTitle(String title) {
   return Align(
@@ -116,9 +145,6 @@ Widget build(BuildContext context) {
           SizedBox(height: 15),
           _buildSectionTitle("Music Recommendations"),
           _buildMusicRecommendations(),
-          SizedBox(height: 15),
-          _buildSectionTitle("Activity Tracker"),
-          _buildActivityTracker(),
         ],
 ),
 ),
@@ -212,41 +238,56 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildInsightsSection() {
-  List<String> insights = [
-    "Mindfulness",
-    "Stress Relief",
-    "Daily Motivation",
-    "Positive Habits",
-    "Emotional Balance",
-    "Focus Boost",
-    "Sleep Quality"
-  ];
-
   return Container(
-    height: 180, // Taller for a portrait-like shape
+    height: 180,
     child: ListView.builder(
       scrollDirection: Axis.horizontal,
-      itemCount: insights.length,
+      itemCount: insightsList.length,
       itemBuilder: (context, index) {
-        return _buildInsightCard(insights[index]);
+        final insight = insightsList[index];
+        return _buildInsightCard(insight);
       },
     ),
   );
 }
 
-Widget _buildInsightCard(String title) {
-  return Container(
-    width: 120, // Portrait shape
-    margin: EdgeInsets.symmetric(horizontal: 8),
-    decoration: BoxDecoration(
-      color: Colors.blueGrey,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Center(
-      child: Text(title, style: TextStyle(color: Colors.white, fontSize: 14)),
+
+Widget _buildInsightCard(Map<String, dynamic> insight) {
+  String previewText = insight['text']
+      .toString()
+      .split(' ')
+      .take(20)
+      .join(' ') + '...';
+
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InsightDetailScreen(insight: insight),
+        ),
+      );
+    },
+    child: Container(
+      width: 150,
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade700,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          previewText,
+          style: TextStyle(color: Colors.white, fontSize: 13),
+          maxLines: 5,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     ),
   );
 }
+
 
 
   Widget _buildMusicRecommendations() {
@@ -284,49 +325,6 @@ Widget _buildInsightCard(String title) {
       height: 35,
       decoration: BoxDecoration(
         color: Colors.purpleAccent,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: Text(title, style: TextStyle(color: Colors.white, fontSize: 12)),
-      ),
-    );
-  }
-
-  Widget _buildActivityTracker() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text("Today's Progress", style: TextStyle(color: Colors.white)),
-            ),
-          ),
-        ),
-        SizedBox(width: 10),
-        Column(
-          children: [
-            _buildSmallActivityTile("Steps"),
-            SizedBox(height: 10),
-            _buildSmallActivityTile("Calories"),
-            SizedBox(height: 10),
-            _buildSmallActivityTile("Meditation"),
-          ],
-        )
-      ],
-    );
-  }
-
-  Widget _buildSmallActivityTile(String title) {
-    return Container(
-      width: 100,
-      height: 35,
-      decoration: BoxDecoration(
-        color: Colors.greenAccent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Center(
