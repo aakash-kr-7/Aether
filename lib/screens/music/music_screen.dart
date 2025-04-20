@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import ',./../music_player_screen.dart';
 import '../../models/music_recommendation.dart';
 import '../../services/recommendation_service.dart';
 
@@ -88,18 +88,6 @@ class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
       });
     }
   }
-
-  Future<void> _launchURL(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not launch URL')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,7 +166,17 @@ class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
               itemBuilder: (context, index) {
                 final track = tracks[index];
                 return GestureDetector(
-                  onTap: () => _launchURL(track.trackUrl),
+                  onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => MusicPlayerScreen(
+        title: track.trackName,
+        url: track.trackUrl,
+      ),
+    ),
+  );
+},
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(

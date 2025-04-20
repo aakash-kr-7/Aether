@@ -10,7 +10,9 @@ import '../music/music_screen.dart';
 import '../insights/insights_screen.dart';
 import '../insights/insight_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import '../../models/music_recommendation.dart';
+import '../music/music_player_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -71,6 +73,34 @@ void fetchInsights() async {
     ),
   );
 }
+
+
+Future<List<MusicTrack>> fetchLatestRecommendations() async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    print('User not logged in');
+    return [];
+  }
+
+  final userId = user.uid;
+
+  final snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('music_recommendations')
+      .orderBy('timestamp', descending: true)
+      .limit(1)
+      .get();
+
+  if (snapshot.docs.isEmpty) return [];
+
+  final data = snapshot.docs.first.data();
+  final List<dynamic> rawTracks = data['recommendedTracks'] ?? [];
+
+  return rawTracks.map((track) => MusicTrack.fromMap(track)).take(4).toList();
+}
+
 
 @override
 Widget build(BuildContext context) {
@@ -144,7 +174,19 @@ Widget build(BuildContext context) {
           _buildInsightsSection(),
           SizedBox(height: 15),
           _buildSectionTitle("Music Recommendations"),
-          _buildMusicRecommendations(),
+          FutureBuilder<List<MusicTrack>>(
+  future: fetchLatestRecommendations(), // make sure `userId` is available
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return CircularProgressIndicator(); // or a shimmer placeholder
+    } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+      return SizedBox.shrink(); // no recommendations
+    } else {
+      return _buildMusicRecommendations(snapshot.data!, context);
+    }
+  },
+),
+
         ],
 ),
 ),
@@ -288,50 +330,83 @@ Widget _buildInsightCard(Map<String, dynamic> insight) {
   );
 }
 
+Widget _buildMusicRecommendations(List<MusicTrack> tracks, BuildContext context) {
+  if (tracks.length < 4) return SizedBox.shrink();
 
+  return Column(
+    children: [
+      // First Row: Two Tiles (Big and Small)
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // First Tile
+          _buildMusicTile(tracks[0], context),
 
-  Widget _buildMusicRecommendations() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.deepPurple,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text("Main Recommendation", style: TextStyle(color: Colors.white)),
-            ),
+          // Second Tile
+          _buildMusicTile(tracks[1], context),
+        ],
+      ),
+      SizedBox(height: 15),
+
+      // Second Row: Two Tiles (Big and Small)
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Third Tile
+          _buildMusicTile(tracks[2], context),
+
+          // Fourth Tile
+          _buildMusicTile(tracks[3], context),
+        ],
+      ),
+    ],
+  );
+}
+
+// Helper Function to Build Music Tile
+Widget _buildMusicTile(MusicTrack track, BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MusicPlayerScreen(
+            title: track.trackName,
+            url: track.trackUrl,
           ),
         ),
-        SizedBox(width: 10),
-        Column(
-          children: [
-            _buildSmallMusicTile("Feel It"),
-            SizedBox(height: 10),
-            _buildSmallMusicTile("Forget It"),
-            SizedBox(height: 10),
-            _buildSmallMusicTile("Deepen It"),
-          ],
-        )
-      ],
-    );
-  }
-
-  Widget _buildSmallMusicTile(String title) {
-    return Container(
-      width: 100,
-      height: 35,
+      );
+    },
+    child: Container(
+      height: 130, // Standard height for all tiles
+      width: MediaQuery.of(context).size.width * 0.45, // Standard width for each tile
       decoration: BoxDecoration(
-        color: Colors.purpleAccent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: NetworkImage(track.albumArtUrl),
+          fit: BoxFit.cover,
+        ),
       ),
-      child: Center(
-        child: Text(title, style: TextStyle(color: Colors.white, fontSize: 12)),
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Align(
+          alignment: Alignment.bottomLeft,
+          child: Text(
+            track.trackName,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: Colors.black.withOpacity(0.6), offset: Offset(2, 2), blurRadius: 6)],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDrawerItem(IconData icon, String title, {VoidCallback? onTap}) {
     return ListTile(
