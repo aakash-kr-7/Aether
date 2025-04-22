@@ -17,7 +17,9 @@ class MusicRecommendationScreen extends StatefulWidget {
 
 class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
   late final RecommendationService _recommendationService;
-  List<MusicTrack> _recommendedTracks = [];
+  List<MusicTrack> _moodTracks = [];
+  List<MusicTrack> _emotionTracks = [];
+  List<MusicTrack> _playedTracks = [];
   bool _isLoading = true;
   String? _errorMessage;
   String? _mood;
@@ -31,63 +33,73 @@ class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
   }
 
   Future<void> _loadRecommendations() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
 
-    try {
-      final checkinSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('checkins')
-          .orderBy('date', descending: true)
-          .limit(1)
-          .get();
+  try {
+    final checkinSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .collection('checkins')
+        .orderBy('date', descending: true)
+        .limit(1)
+        .get();
 
-      if (checkinSnapshot.docs.isEmpty) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'No recent check-ins found.';
-        });
-        return;
-      }
-
-      final checkinData = checkinSnapshot.docs.first.data();
-      _mood = checkinData['mood'];
-      _primaryEmotion = checkinData['primaryEmotion'];
-
-      final recommendationsSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('music_recommendations')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .get();
-
-      if (recommendationsSnapshot.docs.isEmpty) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'No recommendations found for your latest check-in.';
-        });
-        return;
-      }
-
-      final recommendationData = recommendationsSnapshot.docs.first.data();
-      final recommendationId = recommendationsSnapshot.docs.first.id;
-      final recommendation = MusicRecommendation.fromMap(recommendationId, recommendationData);
-
-      setState(() {
-        _recommendedTracks = recommendation.recommendedTracks;
-        _isLoading = false;
-      });
-    } catch (e) {
+    if (checkinSnapshot.docs.isEmpty) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error loading recommendations: $e';
+        _errorMessage = 'No recent check-ins found.';
       });
+      return;
     }
+
+    final checkinData = checkinSnapshot.docs.first.data();
+    _mood = checkinData['mood'];
+    _primaryEmotion = checkinData['primaryEmotion'];
+
+    final recommendationsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .collection('music_recommendations')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
+
+    if (recommendationsSnapshot.docs.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'No recommendations found for your latest check-in.';
+      });
+      return;
+    }
+
+    final recommendationData = recommendationsSnapshot.docs.first.data();
+    final recommendationId = recommendationsSnapshot.docs.first.id;
+    final recommendation = MusicRecommendation.fromMap(recommendationId, recommendationData);
+
+    final userPlayedUrls = recommendation.userPlayed;
+
+    final playedTracks = [
+      ...recommendation.moodTracks,
+      ...recommendation.emotionTracks,
+    ].where((track) => userPlayedUrls.contains(track.trackUrl)).toList();
+
+    setState(() {
+      _moodTracks = recommendation.moodTracks;
+      _emotionTracks = recommendation.emotionTracks;
+      _playedTracks = playedTracks;
+      _isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      _isLoading = false;
+      _errorMessage = 'Error loading recommendations: $e';
+    });
   }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,12 +137,12 @@ class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        if (_mood != null && _recommendedTracks.isNotEmpty)
-                          _buildRecommendationSection('Since you were feeling $_mood, here are your tracks:', _recommendedTracks),
-                        if (_primaryEmotion != null && _recommendedTracks.isNotEmpty)
-                          _buildRecommendationSection('Since you were feeling $_primaryEmotion, here are your tracks:', _recommendedTracks),
-                        if (_recommendedTracks.isNotEmpty)
-                          _buildRecommendationSection('Your Recently Played Tracks:', _recommendedTracks),
+                        if (_mood != null && _moodTracks.isNotEmpty)
+                          _buildRecommendationSection('Since you were feeling $_mood, here are your tracks:', _moodTracks),
+                        if (_primaryEmotion != null && _emotionTracks.isNotEmpty)
+                          _buildRecommendationSection('Because you felt $_primaryEmotion, these might help:', _emotionTracks),
+                        if (_playedTracks.isNotEmpty)
+        _buildRecommendationSection('Your Recently Played Tracks:', _playedTracks),  
                       ],
                     ),
         ),
@@ -167,16 +179,16 @@ class _MusicRecommendationScreenState extends State<MusicRecommendationScreen> {
                 final track = tracks[index];
                 return GestureDetector(
                   onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => MusicPlayerScreen(
-        title: track.trackName,
-        url: track.trackUrl,
-      ),
-    ),
-  );
-},
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MusicPlayerScreen(
+                          title: track.trackName,
+                          url: track.trackUrl,
+                        ),
+                      ),
+                    );
+                  },
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(

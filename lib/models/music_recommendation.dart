@@ -3,15 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MusicRecommendation {
   final String id; // Firestore document ID
   final DateTime timestamp;
-  final String? fromCheckinId; // optional reference to the checkin
-  final List<MusicTrack> recommendedTracks;
+  final String? fromCheckinId; // Optional reference to the check-in document
+  final List<MusicTrack> moodTracks;
+  final List<MusicTrack> emotionTracks;
   final List<String> userPlayed;
 
   MusicRecommendation({
     required this.id,
     required this.timestamp,
     this.fromCheckinId,
-    required this.recommendedTracks,
+    required this.moodTracks,
+    required this.emotionTracks,
     required this.userPlayed,
   });
 
@@ -20,7 +22,10 @@ class MusicRecommendation {
       id: id,
       timestamp: (data['timestamp'] as Timestamp).toDate(),
       fromCheckinId: data['fromCheckinId'],
-      recommendedTracks: (data['recommendedTracks'] as List<dynamic>)
+      moodTracks: (data['moodTracks'] as List<dynamic>)
+          .map((track) => MusicTrack.fromMap(track))
+          .toList(),
+      emotionTracks: (data['emotionTracks'] as List<dynamic>)
           .map((track) => MusicTrack.fromMap(track))
           .toList(),
       userPlayed: List<String>.from(data['userPlayed'] ?? []),
@@ -29,9 +34,10 @@ class MusicRecommendation {
 
   Map<String, dynamic> toMap() {
     return {
-      'timestamp': timestamp,
+      'timestamp': Timestamp.fromDate(timestamp),
       'fromCheckinId': fromCheckinId,
-      'recommendedTracks': recommendedTracks.map((track) => track.toMap()).toList(),
+      'moodTracks': moodTracks.map((track) => track.toMap()).toList(),
+      'emotionTracks': emotionTracks.map((track) => track.toMap()).toList(),
       'userPlayed': userPlayed,
     };
   }
