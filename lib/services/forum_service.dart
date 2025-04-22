@@ -105,4 +105,32 @@ Future<void> deleteComment({
   });
 }
 
+Future<void> deletePost(String postId) async {
+  try {
+    // Delete all comments under the post
+    final commentsSnapshot = await forumCollection
+        .doc(postId)
+        .collection('comments')
+        .get();
+
+    for (var doc in commentsSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    // Delete the post itself
+    await forumCollection.doc(postId).delete();
+  } catch (e) {
+    print("Error deleting post: $e");
+  }
+}
+
+Stream<List<ForumPost>> getUserPosts(String userId) {
+  return forumCollection
+      .where('userId', isEqualTo: userId)
+      .orderBy('timestamp', descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) => ForumPost.fromMap(doc.data() as Map<String, dynamic>))
+          .toList());
+}
 }
