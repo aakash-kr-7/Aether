@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/forum_post.dart';
+import '../models/comment_model.dart';
 
 class ForumService {
   final CollectionReference forumCollection =
@@ -44,11 +45,64 @@ class ForumService {
     }
   }
 
-  Future<void> updateCommentCount(String postId, int newCount) async {
-    try {
-      await forumCollection.doc(postId).update({'commentCount': newCount});
-    } catch (e) {
-      print("Error updating comment count: $e");
-    }
-  }
+  Future<void> addComment({
+  required String postId,
+  required String userId,
+  required String username,
+  required String content,
+}) async {
+  final commentRef = FirebaseFirestore.instance
+      .collection('forumPosts')
+      .doc(postId)
+      .collection('comments')
+      .doc();
+
+  final comment = CommentModel(
+    commentId: commentRef.id,
+    userId: userId,
+    username: username,
+    content: content,
+    timestamp: DateTime.now(),
+  );
+
+  await commentRef.set(comment.toMap());
+
+  // Increment the commentCount in the parent post
+  await FirebaseFirestore.instance
+      .collection('forumPosts')
+      .doc(postId)
+      .update({'commentCount': FieldValue.increment(1)});
+}
+
+Stream<List<CommentModel>> getCommentsForPost(String postId) {
+  return FirebaseFirestore.instance
+      .collection('forumPosts')
+      .doc(postId)
+      .collection('comments')
+      .orderBy('timestamp', descending: false)
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) => CommentModel.fromMap(doc.data(), doc.id))
+          .toList());
+}
+
+Future<void> deleteComment({
+  required String postId,
+  required String commentId,
+}) async {
+  final commentRef = FirebaseFirestore.instance
+      .collection('forumPosts')
+      .doc(postId)
+      .collection('comments')
+      .doc(commentId);
+
+  await commentRef.delete();
+
+  // Decrement commentCount safely
+  final postRef = FirebaseFirestore.instance.collection('forumPosts').doc(postId);
+  await postRef.update({
+    'commentCount': FieldValue.increment(-1),
+  });
+}
+
 }

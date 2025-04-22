@@ -4,6 +4,7 @@ import '../../models/forum_post.dart';
 import '../../services/forum_service.dart';
 import 'create_post_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'post_detail_screen.dart';
 
 class ForumHome extends StatefulWidget {
   @override
@@ -17,6 +18,28 @@ class _ForumHomeState extends State<ForumHome> {
   void _toggleLike(String postId) {
     _forumService.toggleLike(postId, userId);
   }
+
+  void _navigateToPostDetail(ForumPost post) async {
+  // Wait for detail screen to pop, then refresh UI
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PostDetailScreen(
+        postData: {  // Pass the entire postData
+          'postId': post.postId,
+          'title': post.title,  
+          'content': post.content,
+          'userId': post.userId,
+          'username': post.username,
+          'timestamp': post.timestamp,
+          'likeCount': post.likes.length,
+          'commentCount': post.commentCount,
+        },
+      ),
+    ),
+  );
+  setState(() {}); // Refresh to get latest comments count
+}
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +85,6 @@ class _ForumHomeState extends State<ForumHome> {
                 }
 
                 List<ForumPost> posts = snapshot.data!;
-
                 posts.sort((a, b) => (b.likes.length + b.commentCount).compareTo(a.likes.length + a.commentCount));
 
                 return ListView.builder(
@@ -71,63 +93,71 @@ class _ForumHomeState extends State<ForumHome> {
                     ForumPost post = posts[index];
                     bool isLiked = post.likes.contains(userId);
 
-                    return Card(
-                      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      color: Color.fromARGB(255, 26, 36, 53), // Dark color for card background
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              post.title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                    return GestureDetector(
+                      onTap: () => _navigateToPostDetail(post),
+                      child: Card(
+                        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        color: Color.fromARGB(255, 26, 36, 53),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                post.title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              post.content,
-                              style: GoogleFonts.poppins(color: Colors.white),
-                            ),
-                            SizedBox(height: 12),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    isLiked ? Icons.favorite : Icons.favorite_border,
-                                    color: isLiked ? Colors.red : Colors.grey,
+                              SizedBox(height: 8),
+                              Text(
+                                post.content,
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
+                              SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      isLiked ? Icons.favorite : Icons.favorite_border,
+                                      color: isLiked ? Colors.red : Colors.grey,
+                                    ),
+                                    onPressed: () => _toggleLike(post.postId),
                                   ),
-                                  onPressed: () => _toggleLike(post.postId),
-                                ),
-                                Text(
-                                  "${post.likes.length} likes",
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                ),
-                                SizedBox(width: 16),
-                                Icon(
-                                  Icons.comment,
-                                  color: Colors.blue[700],
-                                ),
-                                Text(
-                                  "${post.commentCount} comments",
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                "Posted by Anonymous",
-                                style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+                                  Text(
+                                    "${post.likes.length} likes",
+                                    style: GoogleFonts.poppins(color: Colors.white),
+                                  ),
+                                  SizedBox(width: 16),
+                                  GestureDetector(
+                                    onTap: () => _navigateToPostDetail(post),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.comment, color: Colors.blue[700]),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "${post.commentCount} comments",
+                                          style: GoogleFonts.poppins(color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Text(
+                                  "Posted by Anonymous",
+                                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
