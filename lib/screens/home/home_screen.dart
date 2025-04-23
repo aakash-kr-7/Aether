@@ -115,9 +115,14 @@ Future<List<MusicTrack>> fetchLatestRecommendations() async {
   if (snapshot.docs.isEmpty) return [];
 
   final data = snapshot.docs.first.data();
-  final List<dynamic> rawTracks = data['recommendedTracks'] ?? [];
 
-  return rawTracks.map((track) => MusicTrack.fromMap(track)).take(4).toList();
+  final List<dynamic> moodTracksRaw = data['moodTracks'] ?? [];
+  final List<dynamic> emotionTracksRaw = data['emotionTracks'] ?? [];
+
+  final moodTracks = moodTracksRaw.map((track) => MusicTrack.fromMap(track)).take(2).toList();
+final emotionTracks = emotionTracksRaw.map((track) => MusicTrack.fromMap(track)).take(2).toList();
+
+return [...moodTracks, ...emotionTracks];
 }
 
 

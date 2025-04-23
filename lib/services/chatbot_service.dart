@@ -26,7 +26,7 @@ class ChatbotService {
       List<dynamic> messages = snapshot.get("messages") ?? [];
       messages.sort((a, b) => (a["timestamp"] as Timestamp).compareTo(b["timestamp"]));
       contextMessages = messages.cast<Map<String, dynamic>>().sublist(
-  messages.length >= 30 ? messages.length - 30 : 0
+  messages.length >= 60 ? messages.length - 60 : 0
 ); // takeLast extension comes below
     }
 
